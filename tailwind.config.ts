@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ['Noto Serif SC', 'serif'],
+        body: ['Noto Sans SC', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -56,6 +60,16 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        travel: {
+          sage: "hsl(var(--travel-sage))",
+          "sage-foreground": "hsl(var(--travel-sage-foreground))",
+          sky: "hsl(var(--travel-sky))",
+          "sky-foreground": "hsl(var(--travel-sky-foreground))",
+          sunset: "hsl(var(--travel-sunset))",
+          "sunset-foreground": "hsl(var(--travel-sunset-foreground))",
+          rain: "hsl(var(--travel-rain))",
+          "rain-foreground": "hsl(var(--travel-rain-foreground))",
         },
       },
       borderRadius: {
