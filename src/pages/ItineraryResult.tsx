@@ -1,33 +1,68 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Wallet, Sparkles, Hotel } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Wallet, Sparkles, Hotel, Heart, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import DayCard from "@/components/DayCard";
 import type { Itinerary } from "@/data/mockItinerary";
+import { isFavorite, toggleFavorite } from "@/lib/itineraryStorage";
 
 const ItineraryResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const itinerary = location.state?.itinerary as Itinerary | undefined;
+  const savedId = location.state?.savedId as string | undefined;
+  const [fav, setFav] = useState(() => savedId ? isFavorite(savedId) : false);
 
   if (!itinerary) {
     navigate("/");
     return null;
   }
 
+  const handleToggleFav = () => {
+    if (!savedId) return;
+    const newVal = toggleFavorite(savedId);
+    setFav(newVal);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="travel-gradient text-primary-foreground">
         <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/")}
-            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 mb-4 -ml-2"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            重新规划
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/")}
+              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 -ml-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              重新规划
+            </Button>
+            <div className="flex gap-1">
+              {savedId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToggleFav}
+                  className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                >
+                  <Heart className={cn("h-4 w-4 mr-1", fav && "fill-current")} />
+                  {fav ? "已收藏" : "收藏"}
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/history")}
+                className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+              >
+                <History className="h-4 w-4 mr-1" />
+                我的攻略
+              </Button>
+            </div>
+          </div>
 
           <h1 className="font-display text-3xl md:text-4xl font-bold mb-4">
             {itinerary.city}旅行攻略
