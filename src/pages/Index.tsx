@@ -8,12 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CITIES, BUDGET_OPTIONS, PREFERENCE_TAGS, generateMockItinerary } from "@/data/mockItinerary";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { CITIES, BUDGET_OPTIONS, PREFERENCE_TAGS } from "@/data/mockItinerary";
 import type { TravelForm } from "@/data/mockItinerary";
 import heroImage from "@/assets/hero-travel.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [form, setForm] = useState<TravelForm>({
     city: "",
     startDate: undefined,
@@ -32,14 +35,43 @@ const Index = () => {
     }));
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!form.city) return;
     setLoading(true);
-    setTimeout(() => {
-      const itinerary = generateMockItinerary(form);
-      navigate("/itinerary", { state: { itinerary } });
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-itinerary", {
+        body: {
+          city: form.city,
+          startDate: form.startDate?.toISOString(),
+          endDate: form.endDate?.toISOString(),
+          budget: form.budget,
+          preferences: form.preferences,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        toast({
+          title: "生成失败",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      navigate("/itinerary", { state: { itinerary: data } });
+    } catch (err: any) {
+      console.error("Generate error:", err);
+      toast({
+        title: "生成攻略失败",
+        description: err?.message || "请稍后重试",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -182,7 +214,7 @@ const Index = () => {
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="animate-spin h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full" />
-                正在生成攻略...
+                AI 正在生成攻略...
               </span>
             ) : (
               <span className="flex items-center gap-2">
@@ -191,6 +223,10 @@ const Index = () => {
               </span>
             )}
           </Button>
+
+          <p className="text-xs text-center text-muted-foreground">
+            由 AI 智能生成，通常需要 10-20 秒
+          </p>
         </div>
       </div>
     </div>
