@@ -29,11 +29,10 @@ export interface ItineraryDay {
 }
 
 export interface HotelRecommendation {
-  name: string;
   area: string;
   price: string;
   reason: string;
-  type: string;
+  tags?: string[];
 }
 
 export interface Itinerary {

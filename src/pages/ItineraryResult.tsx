@@ -60,13 +60,19 @@ const ItineraryResult = () => {
         <div className="max-w-3xl mx-auto px-4 pt-8">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
             <Hotel className="h-5 w-5 text-primary" />
-            推荐住宿
+            推荐住宿区域
           </h2>
           <div className="grid gap-3 md:grid-cols-3">
             {itinerary.hotels.map((hotel, i) => (
               <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-2">
-                <div className="font-medium text-foreground">{hotel.name}</div>
-                <div className="text-xs text-muted-foreground">{hotel.type} · {hotel.area}</div>
+                <div className="font-medium text-foreground">{hotel.area}</div>
+                {hotel.tags && hotel.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {hotel.tags.map((tag, j) => (
+                      <span key={j} className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">{tag}</span>
+                    ))}
+                  </div>
+                )}
                 <div className="text-sm font-semibold text-primary">{hotel.price}</div>
                 <p className="text-xs text-muted-foreground leading-relaxed">{hotel.reason}</p>
               </div>
