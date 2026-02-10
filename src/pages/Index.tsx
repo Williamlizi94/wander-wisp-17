@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarIcon, Sparkles } from "lucide-react";
+import { CalendarIcon, Clock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,8 @@ const Index = () => {
     city: "",
     startDate: undefined,
     endDate: undefined,
+    arrivalTime: "",
+    departureTime: "",
     budget: "mid",
     preferences: [],
   });
@@ -45,6 +48,8 @@ const Index = () => {
           city: form.city,
           startDate: form.startDate?.toISOString(),
           endDate: form.endDate?.toISOString(),
+          arrivalTime: form.arrivalTime,
+          departureTime: form.departureTime,
           budget: form.budget,
           preferences: form.preferences,
         },
@@ -151,6 +156,44 @@ const Index = () => {
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+          </div>
+
+          {/* Arrival & Departure Time */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">🕐 到达时间</label>
+              <Select
+                value={form.arrivalTime}
+                onValueChange={(v) => setForm(prev => ({ ...prev, arrivalTime: v }))}
+              >
+                <SelectTrigger className={cn(!form.arrivalTime && "text-muted-foreground")}>
+                  <Clock className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="第一天几点到" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"].map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">🕐 离开时间</label>
+              <Select
+                value={form.departureTime}
+                onValueChange={(v) => setForm(prev => ({ ...prev, departureTime: v }))}
+              >
+                <SelectTrigger className={cn(!form.departureTime && "text-muted-foreground")}>
+                  <Clock className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="最后一天几点走" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"].map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
