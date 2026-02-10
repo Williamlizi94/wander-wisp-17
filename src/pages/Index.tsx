@@ -2,17 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarIcon, MapPin, Sparkles } from "lucide-react";
+import { CalendarIcon, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { BUDGET_OPTIONS, PREFERENCE_TAGS } from "@/data/mockItinerary";
-import { getAllProvinces, getCitiesByProvince } from "@/data/provinceCities";
 import type { TravelForm } from "@/data/mockItinerary";
+import CityPicker from "@/components/CityPicker";
 import heroImage from "@/assets/hero-travel.jpg";
 
 const Index = () => {
@@ -25,11 +24,7 @@ const Index = () => {
     budget: "mid",
     preferences: [],
   });
-  const [selectedProvince, setSelectedProvince] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const provinces = getAllProvinces();
-  const cities = selectedProvince ? getCitiesByProvince(selectedProvince) : [];
 
   const togglePreference = (value: string) => {
     setForm(prev => ({
@@ -98,44 +93,15 @@ const Index = () => {
       {/* Form */}
       <div className="max-w-xl mx-auto px-4 -mt-10 relative z-10 pb-16">
         <div className="glass-card rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-          {/* Province & City */}
+          {/* City Picker */}
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              <MapPin className="inline h-4 w-4 mr-1 text-primary" />
-              目标城市
+              📍 目标城市
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <Select
-                value={selectedProvince}
-                onValueChange={(v) => {
-                  setSelectedProvince(v);
-                  setForm(prev => ({ ...prev, city: "" }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="选择省份" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {provinces.map(p => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={form.city}
-                onValueChange={(v) => setForm(prev => ({ ...prev, city: v }))}
-                disabled={!selectedProvince}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={selectedProvince ? "选择城市" : "请先选省份"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {cities.map(city => (
-                    <SelectItem key={city} value={city}>{city}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CityPicker
+              value={form.city}
+              onChange={(city) => setForm(prev => ({ ...prev, city }))}
+            />
           </div>
 
           {/* Dates */}
