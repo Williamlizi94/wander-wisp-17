@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Wallet, Sparkles } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Wallet, Sparkles, Hotel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DayCard from "@/components/DayCard";
 import type { Itinerary } from "@/data/mockItinerary";
@@ -54,6 +54,26 @@ const ItineraryResult = () => {
           </div>
         </div>
       </div>
+
+      {/* Hotel Recommendations */}
+      {itinerary.hotels && itinerary.hotels.length > 0 && (
+        <div className="max-w-3xl mx-auto px-4 pt-8">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
+            <Hotel className="h-5 w-5 text-primary" />
+            推荐住宿
+          </h2>
+          <div className="grid gap-3 md:grid-cols-3">
+            {itinerary.hotels.map((hotel, i) => (
+              <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-2">
+                <div className="font-medium text-foreground">{hotel.name}</div>
+                <div className="text-xs text-muted-foreground">{hotel.type} · {hotel.area}</div>
+                <div className="text-sm font-semibold text-primary">{hotel.price}</div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{hotel.reason}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Day Cards */}
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-4">

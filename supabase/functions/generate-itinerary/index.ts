@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { city, startDate, endDate, arrivalTime, departureTime, budget, preferences } = await req.json();
+    const { city, startDate, endDate, arrivalTime, departureTime, budget, preferences, groupType } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -28,11 +28,20 @@ serve(async (req) => {
     const arrivalStr = arrivalTime ? `第一天到达时间：${arrivalTime}` : "第一天全天可用";
     const departureStr = departureTime ? `最后一天离开时间：${departureTime}` : "最后一天全天可用";
 
+    const groupMap: Record<string, string> = {
+      solo: "单人出行",
+      couple: "情侣出行（注重浪漫氛围）",
+      family: "家庭亲子出行（注意儿童友好）",
+      friends: "朋友结伴出行（注重社交互动和体验）",
+    };
+    const groupStr = `出行人群：${groupMap[groupType] || "单人出行"}`;
+
     const prompt = `你是一个专业的中国旅行规划师。请为以下旅行生成详细攻略：
 
 城市：${city}
 天数：${dayCount}天
 预算：${budgetMap[budget] || "舒适出行"}
+${groupStr}
 ${prefStr}
 ${arrivalStr}
 ${departureStr}
@@ -41,6 +50,15 @@ ${departureStr}
 
 {
   "summary": "一句话总结旅行节奏和花费建议",
+  "hotels": [
+    {
+      "name": "酒店/民宿名称",
+      "area": "所在区域",
+      "price": "参考价格如300-500元/晚",
+      "reason": "推荐理由（位置、特色等）",
+      "type": "类型如经济连锁/精品民宿/星级酒店"
+    }
+  ],
   "days": [
     {
       "day": 1,
@@ -78,11 +96,13 @@ ${departureStr}
 }
 
 要求：
+- 推荐3个住宿地点，根据预算和出行人群匹配，说明推荐理由
 - 每天安排上午、下午、晚上3个时段
 - 每天推荐2-4个特色小吃
 - 天气数据请根据${city}该季节的典型天气给出合理估计
 - 交通建议要具体实用
 - Plan B要有具体的室内替代方案
+- 根据出行人群特点调整景点和活动推荐
 - 返回${dayCount}天的完整攻略
 - 第一天的行程要根据到达时间安排，到达之前不要安排活动
 - 最后一天的行程要根据离开时间安排，离开之后不要安排活动，并预留足够的赶路时间`;
@@ -150,6 +170,7 @@ ${departureStr}
       dateRange,
       budget: budgetMap[budget] || "舒适出行",
       summary: itinerary.summary,
+      hotels: itinerary.hotels || [],
       days: itinerary.days.map((d: any, i: number) => ({
         ...d,
         date: startDate

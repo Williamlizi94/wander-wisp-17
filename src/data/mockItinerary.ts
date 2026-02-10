@@ -28,11 +28,20 @@ export interface ItineraryDay {
   planB: string;
 }
 
+export interface HotelRecommendation {
+  name: string;
+  area: string;
+  price: string;
+  reason: string;
+  type: string;
+}
+
 export interface Itinerary {
   city: string;
   dateRange: string;
   budget: string;
   summary: string;
+  hotels?: HotelRecommendation[];
   days: ItineraryDay[];
 }
 
@@ -44,7 +53,15 @@ export interface TravelForm {
   departureTime: string;
   budget: string;
   preferences: string[];
+  groupType: string;
 }
+
+export const GROUP_OPTIONS = [
+  { label: "🧍 单人", value: "solo", desc: "一个人的自由之旅" },
+  { label: "💑 情侣", value: "couple", desc: "浪漫二人世界" },
+  { label: "👨‍👩‍👧‍👦 家庭", value: "family", desc: "带娃亲子出行" },
+  { label: "👫 朋友团", value: "friends", desc: "好友结伴同行" },
+];
 
 export const CITIES = [
   "北京", "上海", "成都", "西安", "杭州", "南京", "重庆",
