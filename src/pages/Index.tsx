@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { BUDGET_OPTIONS, PREFERENCE_TAGS } from "@/data/mockItinerary";
+import { BUDGET_OPTIONS, PREFERENCE_TAGS, GROUP_OPTIONS } from "@/data/mockItinerary";
 import type { TravelForm } from "@/data/mockItinerary";
 import CityPicker from "@/components/CityPicker";
 import heroImage from "@/assets/hero-travel.jpg";
@@ -26,6 +26,7 @@ const Index = () => {
     departureTime: "",
     budget: "mid",
     preferences: [],
+    groupType: "solo",
   });
   const [loading, setLoading] = useState(false);
 
@@ -52,6 +53,7 @@ const Index = () => {
           departureTime: form.departureTime,
           budget: form.budget,
           preferences: form.preferences,
+          groupType: form.groupType,
         },
       });
 
@@ -194,6 +196,28 @@ const Index = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* Group Type */}
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">出行人群</label>
+            <div className="grid grid-cols-2 gap-2">
+              {GROUP_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setForm(prev => ({ ...prev, groupType: opt.value }))}
+                  className={cn(
+                    "rounded-lg border p-3 text-left transition-all text-sm",
+                    form.groupType === opt.value
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border hover:border-primary/40"
+                  )}
+                >
+                  <span className="font-medium text-foreground">{opt.label}</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">{opt.desc}</span>
+                </button>
+              ))}
             </div>
           </div>
 
