@@ -30,7 +30,6 @@ export interface ItineraryDay {
 
 export interface HotelRecommendation {
   area: string;
-  price: string;
   reason: string;
   tags?: string[];
 }

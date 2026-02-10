@@ -73,7 +73,6 @@ const ItineraryResult = () => {
                     ))}
                   </div>
                 )}
-                <div className="text-sm font-semibold text-primary">{hotel.price}</div>
                 <p className="text-xs text-muted-foreground leading-relaxed">{hotel.reason}</p>
               </div>
             ))}
