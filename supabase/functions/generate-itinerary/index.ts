@@ -18,10 +18,12 @@ serve(async (req) => {
       : 3;
 
     const budgetMap: Record<string, string> = {
-      low: "穷游模式（<1000元/天）",
-      mid: "舒适出行（1000-3000元/天）",
-      high: "品质旅行（3000-6000元/天）",
-      luxury: "奢华体验（>6000元/天）",
+      low: "穷游模式（<500元/天）",
+      economy: "经济实惠（500-1000元/天）",
+      mid: "舒适出行（1000-2000元/天）",
+      high: "品质旅行（2000-3000元/天）",
+      premium: "轻奢体验（3000-5000元/天）",
+      luxury: "奢华之旅（>5000元/天）",
     };
 
     const prefStr = preferences?.length ? `旅行偏好：${preferences.join("、")}` : "无特殊偏好";

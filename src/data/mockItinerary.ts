@@ -70,10 +70,12 @@ export const CITIES = [
 ];
 
 export const BUDGET_OPTIONS = [
-  { label: "穷游模式", value: "low", range: "< 1000元/天" },
-  { label: "舒适出行", value: "mid", range: "1000–3000元/天" },
-  { label: "品质旅行", value: "high", range: "3000–6000元/天" },
-  { label: "奢华体验", value: "luxury", range: "> 6000元/天" },
+  { label: "穷游模式", value: "low", range: "< 500元/天" },
+  { label: "经济实惠", value: "economy", range: "500–1000元/天" },
+  { label: "舒适出行", value: "mid", range: "1000–2000元/天" },
+  { label: "品质旅行", value: "high", range: "2000–3000元/天" },
+  { label: "轻奢体验", value: "premium", range: "3000–5000元/天" },
+  { label: "奢华之旅", value: "luxury", range: "> 5000元/天" },
 ];
 
 export const PREFERENCE_TAGS = [

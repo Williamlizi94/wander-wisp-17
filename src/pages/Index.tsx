@@ -164,14 +164,14 @@ const Index = () => {
           {/* Arrival & Departure Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">🕐 到达时间</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">🕐 到达时间（可选）</label>
               <Select
                 value={form.arrivalTime}
                 onValueChange={(v) => setForm(prev => ({ ...prev, arrivalTime: v }))}
               >
                 <SelectTrigger className={cn(!form.arrivalTime && "text-muted-foreground")}>
                   <Clock className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="第一天几点到" />
+                  <SelectValue placeholder="选择时间" />
                 </SelectTrigger>
                 <SelectContent>
                   {["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"].map(t => (
@@ -181,14 +181,14 @@ const Index = () => {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">🕐 离开时间</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">🕐 离开时间（可选）</label>
               <Select
                 value={form.departureTime}
                 onValueChange={(v) => setForm(prev => ({ ...prev, departureTime: v }))}
               >
                 <SelectTrigger className={cn(!form.departureTime && "text-muted-foreground")}>
                   <Clock className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="最后一天几点走" />
+                  <SelectValue placeholder="选择时间" />
                 </SelectTrigger>
                 <SelectContent>
                   {["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"].map(t => (
@@ -224,7 +224,7 @@ const Index = () => {
           {/* Budget */}
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">预算区间</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {BUDGET_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
