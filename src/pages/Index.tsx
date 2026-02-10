@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { CalendarIcon, Clock, Sparkles } from "lucide-react";
+import { CalendarIcon, Clock, Sparkles, History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { saveItinerary } from "@/lib/itineraryStorage";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
@@ -67,8 +68,8 @@ const Index = () => {
         });
         return;
       }
-
-      navigate("/itinerary", { state: { itinerary: data } });
+      const savedId = saveItinerary(data);
+      navigate("/itinerary", { state: { itinerary: data, savedId } });
     } catch (err: any) {
       console.error("Generate error:", err);
       toast({
@@ -85,6 +86,16 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Hero */}
       <div className="relative h-[45vh] min-h-[320px] overflow-hidden">
+        {/* History button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/history")}
+          className="absolute top-4 right-4 z-20 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+        >
+          <History className="h-4 w-4 mr-1" />
+          我的攻略
+        </Button>
         <img src={heroImage} alt="旅行" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/20 to-background" />
         <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
