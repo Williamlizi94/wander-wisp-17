@@ -40,6 +40,8 @@ export interface TravelForm {
   city: string;
   startDate: Date | undefined;
   endDate: Date | undefined;
+  arrivalTime: string;
+  departureTime: string;
   budget: string;
   preferences: string[];
 }

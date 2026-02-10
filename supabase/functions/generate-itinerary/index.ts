@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { city, startDate, endDate, budget, preferences } = await req.json();
+    const { city, startDate, endDate, arrivalTime, departureTime, budget, preferences } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -25,6 +25,8 @@ serve(async (req) => {
     };
 
     const prefStr = preferences?.length ? `旅行偏好：${preferences.join("、")}` : "无特殊偏好";
+    const arrivalStr = arrivalTime ? `第一天到达时间：${arrivalTime}` : "第一天全天可用";
+    const departureStr = departureTime ? `最后一天离开时间：${departureTime}` : "最后一天全天可用";
 
     const prompt = `你是一个专业的中国旅行规划师。请为以下旅行生成详细攻略：
 
@@ -32,6 +34,8 @@ serve(async (req) => {
 天数：${dayCount}天
 预算：${budgetMap[budget] || "舒适出行"}
 ${prefStr}
+${arrivalStr}
+${departureStr}
 
 请严格按照以下JSON格式返回（不要包含任何其他文字，只返回JSON）：
 
@@ -79,7 +83,9 @@ ${prefStr}
 - 天气数据请根据${city}该季节的典型天气给出合理估计
 - 交通建议要具体实用
 - Plan B要有具体的室内替代方案
-- 返回${dayCount}天的完整攻略`;
+- 返回${dayCount}天的完整攻略
+- 第一天的行程要根据到达时间安排，到达之前不要安排活动
+- 最后一天的行程要根据离开时间安排，离开之后不要安排活动，并预留足够的赶路时间`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
