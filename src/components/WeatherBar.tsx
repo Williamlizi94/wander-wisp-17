@@ -1,4 +1,5 @@
 import { Cloud, Droplets, Umbrella } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface WeatherBarProps {
   icon: string;
@@ -8,6 +9,7 @@ interface WeatherBarProps {
 }
 
 const WeatherBar = ({ icon, tempRange, rainChance, suggestion }: WeatherBarProps) => {
+  const { t } = useI18n();
   const bgClass = rainChance > 50 ? "bg-travel-rain" : "bg-travel-sky";
   const textClass = rainChance > 50 ? "text-travel-rain-foreground" : "text-travel-sky-foreground";
 
@@ -17,7 +19,7 @@ const WeatherBar = ({ icon, tempRange, rainChance, suggestion }: WeatherBarProps
       <span className="font-medium">{tempRange}</span>
       <span className="flex items-center gap-1">
         <Droplets className="h-3.5 w-3.5" />
-        降雨 {rainChance}%
+        {t("rain")}{rainChance}%
       </span>
       <span className="flex items-center gap-1 ml-auto">
         {rainChance > 50 ? <Umbrella className="h-3.5 w-3.5" /> : <Cloud className="h-3.5 w-3.5" />}

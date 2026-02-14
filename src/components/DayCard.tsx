@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, UtensilsCrossed, Bus, CloudRain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import type { ItineraryDay } from "@/data/mockItinerary";
 import WeatherBar from "./WeatherBar";
 import TimelineItem from "./TimelineItem";
@@ -12,10 +13,10 @@ interface DayCardProps {
 
 const DayCard = ({ data, defaultOpen = false }: DayCardProps) => {
   const [open, setOpen] = useState(defaultOpen);
+  const { t } = useI18n();
 
   return (
     <div className="rounded-xl border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      {/* Header - always visible */}
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-4 md:p-5 text-left hover:bg-muted/50 transition-colors"
@@ -37,15 +38,12 @@ const DayCard = ({ data, defaultOpen = false }: DayCardProps) => {
         </div>
       </button>
 
-      {/* Expandable content */}
       {open && (
         <div className="px-4 md:px-5 pb-5 space-y-5 animate-in slide-in-from-top-2 duration-200">
-          {/* Weather */}
           <WeatherBar {...data.weather} />
 
-          {/* Timeline */}
           <div>
-            <h4 className="font-display font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">行程安排</h4>
+            <h4 className="font-display font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider">{t("schedule")}</h4>
             <div>
               {data.schedule.map((item, i) => (
                 <TimelineItem key={i} {...item} isLast={i === data.schedule.length - 1} />
@@ -53,11 +51,10 @@ const DayCard = ({ data, defaultOpen = false }: DayCardProps) => {
             </div>
           </div>
 
-          {/* Food */}
           <div>
             <h4 className="font-display font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
               <UtensilsCrossed className="h-4 w-4" />
-              今日美食
+              {t("todayFood")}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {data.food.map((f, i) => (
@@ -69,28 +66,26 @@ const DayCard = ({ data, defaultOpen = false }: DayCardProps) => {
             </div>
           </div>
 
-          {/* Transport */}
           <div>
             <h4 className="font-display font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
               <Bus className="h-4 w-4" />
-              交通建议
+              {t("transport")}
             </h4>
             <div className="bg-travel-sage rounded-lg p-3">
               <p className="font-medium text-travel-sage-foreground text-sm">
-                推荐：{data.transport.main}
+                {t("recommended")}{data.transport.main}
               </p>
               <p className="text-xs text-travel-sage-foreground/70 mt-1">{data.transport.reason}</p>
               {data.transport.backup && (
-                <p className="text-xs text-travel-sage-foreground/70 mt-1">备选：{data.transport.backup}</p>
+                <p className="text-xs text-travel-sage-foreground/70 mt-1">{t("backup")}{data.transport.backup}</p>
               )}
             </div>
           </div>
 
-          {/* Plan B */}
           <div>
             <h4 className="font-display font-semibold text-sm text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
               <CloudRain className="h-4 w-4" />
-              Plan B（雨天备案）
+              {t("planB")}
             </h4>
             <div className="bg-travel-rain rounded-lg p-3">
               <p className="text-sm text-travel-rain-foreground">{data.planB}</p>
