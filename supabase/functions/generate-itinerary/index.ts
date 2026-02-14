@@ -18,14 +18,15 @@ serve(async (req) => {
       ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
       : 3;
 
-    const budgetMap: Record<string, string> = {
-      low: "穷游模式（<500元/天）",
-      economy: "经济实惠（500-1000元/天）",
-      mid: "舒适出行（1000-2000元/天）",
-      high: "品质旅行（2000-3000元/天）",
-      premium: "轻奢体验（3000-5000元/天）",
-      luxury: "奢华之旅（>5000元/天）",
+    const budgetMap: Record<string, Record<string, string>> = {
+      low: { zh: "穷游模式（<500元/天）", en: "Budget (< $70/day)" },
+      economy: { zh: "经济实惠（500-1000元/天）", en: "Economy ($70–140/day)" },
+      mid: { zh: "舒适出行（1000-2000元/天）", en: "Comfortable ($140–280/day)" },
+      high: { zh: "品质旅行（2000-3000元/天）", en: "Premium ($280–420/day)" },
+      premium: { zh: "轻奢体验（3000-5000元/天）", en: "Luxury Lite ($420–700/day)" },
+      luxury: { zh: "奢华之旅（>5000元/天）", en: "Luxury (> $700/day)" },
     };
+    const bl = (key: string) => (budgetMap[key] || budgetMap.mid)[isEn ? "en" : "zh"];
 
     const prefStr = preferences?.length ? `旅行偏好：${preferences.join("、")}` : "无特殊偏好";
     const arrivalStr = arrivalTime ? `第一天到达时间：${arrivalTime}` : "第一天全天可用";
@@ -43,7 +44,7 @@ serve(async (req) => {
 
 城市：${city}
 天数：${dayCount}天
-预算：${budgetMap[budget] || "舒适出行"}
+预算：${bl(budget)}
 ${groupStr}
 ${prefStr}
 ${arrivalStr}
@@ -167,23 +168,24 @@ ${departureStr}
     }
 
     // Construct full result
+    const dateFmt = isEn ? "en-US" : "zh-CN";
     const dateRange = startDate && endDate
-      ? `${new Date(startDate).toLocaleDateString("zh-CN")} – ${new Date(endDate).toLocaleDateString("zh-CN")}`
-      : `${dayCount}天行程`;
+      ? `${new Date(startDate).toLocaleDateString(dateFmt)} – ${new Date(endDate).toLocaleDateString(dateFmt)}`
+      : isEn ? `${dayCount}-day trip` : `${dayCount}天行程`;
 
     const result = {
       city,
       dateRange,
-      budget: budgetMap[budget] || "舒适出行",
+      budget: bl(budget),
       summary: itinerary.summary,
       hotels: itinerary.hotels || [],
       days: itinerary.days.map((d: any, i: number) => ({
         ...d,
         date: startDate
-          ? new Date(new Date(startDate).getTime() + i * 86400000).toLocaleDateString("zh-CN", {
+          ? new Date(new Date(startDate).getTime() + i * 86400000).toLocaleDateString(dateFmt, {
               month: "long", day: "numeric", weekday: "short",
             })
-          : `第${i + 1}天`,
+          : isEn ? `Day ${i + 1}` : `第${i + 1}天`,
       })),
     };
 
