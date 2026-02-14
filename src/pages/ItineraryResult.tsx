@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Calendar, Wallet, Sparkles, Hotel, Heart, History } 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { loc } from "@/data/worldCities";
 import DayCard from "@/components/DayCard";
 import LangToggle from "@/components/LangToggle";
 import type { Itinerary } from "@/data/mockItinerary";
@@ -12,7 +13,7 @@ import { isFavorite, toggleFavorite } from "@/lib/itineraryStorage";
 const ItineraryResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const itinerary = location.state?.itinerary as Itinerary | undefined;
   const savedId = location.state?.savedId as string | undefined;
   const [fav, setFav] = useState(() => savedId ? isFavorite(savedId) : false);
@@ -52,7 +53,7 @@ const ItineraryResult = () => {
           </div>
 
           <h1 className="font-display text-3xl md:text-4xl font-bold mb-4">
-            {itinerary.city} {t("travelItinerary")}
+            {loc(itinerary.city, lang)} {t("travelItinerary")}
           </h1>
 
           <div className="flex flex-wrap gap-4 text-sm text-primary-foreground/80 mb-6">
