@@ -20,7 +20,7 @@ interface CityPickerProps {
 
 const CityPicker = ({ value, onChange }: CityPickerProps) => {
   const { t, lang } = useI18n();
-  const [tab, setTab] = useState<Tab>("china");
+  const [tab, setTab] = useState<Tab>(lang === "en" ? "us" : "china");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
