@@ -84,6 +84,7 @@ export const PREFERENCE_TAGS = [
   { label: "👨‍👩‍👧 亲子", value: "亲子" },
   { label: "⚡ 特种兵", value: "特种兵" },
   { label: "🧘 松弛", value: "松弛" },
+  { label: "🚗 自驾", value: "自驾" },
 ];
 
 export function generateMockItinerary(form: TravelForm): Itinerary {
