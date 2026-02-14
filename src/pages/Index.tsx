@@ -100,10 +100,10 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/20 to-background" />
         <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-3 drop-shadow-lg">
-            旅行攻略生成器
+            全球旅行攻略生成器
           </h1>
           <p className="text-primary-foreground/90 text-lg md:text-xl max-w-md drop-shadow">
-            告诉我你想去哪，AI 帮你规划每一天
+            全球任意城市，AI 帮你规划每一天
           </p>
         </div>
       </div>
