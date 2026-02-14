@@ -9,7 +9,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { city, startDate, endDate, arrivalTime, departureTime, budget, preferences, groupType } = await req.json();
+    const { city, startDate, endDate, arrivalTime, departureTime, budget, preferences, groupType, lang } = await req.json();
+    const isEn = lang === "en";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -108,7 +109,9 @@ ${departureStr}
 - 返回${dayCount}天的完整攻略
 - 第一天的行程要根据到达时间安排，到达之前不要安排活动
 - 最后一天的行程要根据离开时间安排，离开之后不要安排活动，并预留足够的赶路时间
-- 用中文回答，即使目的地是海外城市`;
+- ${isEn ? "Reply entirely in English" : "用中文回答，即使目的地是海外城市"}
+- ${isEn ? 'Use "Morning"/"Afternoon"/"Evening" for the time field' : '时间段使用"上午"/"下午"/"晚上"'}`;
+
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -119,7 +122,7 @@ ${departureStr}
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "你是专业旅行规划师，只返回有效JSON，不要包含markdown代码块标记。" },
+          { role: "system", content: isEn ? "You are a professional travel planner. Return valid JSON only, no markdown code blocks." : "你是专业旅行规划师，只返回有效JSON，不要包含markdown代码块标记。" },
           { role: "user", content: prompt },
         ],
       }),

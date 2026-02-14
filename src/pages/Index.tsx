@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { CalendarIcon, Clock, Sparkles, History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import { saveItinerary } from "@/lib/itineraryStorage";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,14 +12,48 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { BUDGET_OPTIONS, PREFERENCE_TAGS, GROUP_OPTIONS } from "@/data/mockItinerary";
 import type { TravelForm } from "@/data/mockItinerary";
 import CityPicker from "@/components/CityPicker";
+import LangToggle from "@/components/LangToggle";
 import heroImage from "@/assets/hero-travel.jpg";
+
+const BUDGET_KEYS = [
+  { labelKey: "budgetLow" as const, rangeKey: "budgetLowRange" as const, value: "low" },
+  { labelKey: "budgetEconomy" as const, rangeKey: "budgetEconomyRange" as const, value: "economy" },
+  { labelKey: "budgetMid" as const, rangeKey: "budgetMidRange" as const, value: "mid" },
+  { labelKey: "budgetHigh" as const, rangeKey: "budgetHighRange" as const, value: "high" },
+  { labelKey: "budgetPremium" as const, rangeKey: "budgetPremiumRange" as const, value: "premium" },
+  { labelKey: "budgetLuxury" as const, rangeKey: "budgetLuxuryRange" as const, value: "luxury" },
+];
+
+const GROUP_KEYS = [
+  { labelKey: "solo" as const, descKey: "soloDesc" as const, value: "solo" },
+  { labelKey: "couple" as const, descKey: "coupleDesc" as const, value: "couple" },
+  { labelKey: "family" as const, descKey: "familyDesc" as const, value: "family" },
+  { labelKey: "friends" as const, descKey: "friendsDesc" as const, value: "friends" },
+];
+
+const PREF_KEYS = [
+  { labelKey: "prefFood" as const, value: "美食" },
+  { labelKey: "prefCulture" as const, value: "人文" },
+  { labelKey: "prefNature" as const, value: "自然" },
+  { labelKey: "prefPhoto" as const, value: "拍照" },
+  { labelKey: "prefKids" as const, value: "亲子" },
+  { labelKey: "prefIntense" as const, value: "特种兵" },
+  { labelKey: "prefRelax" as const, value: "松弛" },
+  { labelKey: "prefDrive" as const, value: "自驾" },
+];
+
+const TIME_OPTIONS = [
+  "00:00","01:00","02:00","03:00","04:00","05:00","06:00","07:00",
+  "08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00",
+  "16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00",
+];
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [form, setForm] = useState<TravelForm>({
     city: "",
     startDate: undefined,
@@ -43,7 +78,6 @@ const Index = () => {
   const handleGenerate = async () => {
     if (!form.city) return;
     setLoading(true);
-
     try {
       const { data, error } = await supabase.functions.invoke("generate-itinerary", {
         body: {
@@ -55,55 +89,53 @@ const Index = () => {
           budget: form.budget,
           preferences: form.preferences,
           groupType: form.groupType,
+          lang,
         },
       });
-
       if (error) throw error;
-
       if (data?.error) {
-        toast({
-          title: "生成失败",
-          description: data.error,
-          variant: "destructive",
-        });
+        toast({ title: t("generateFailed"), description: data.error, variant: "destructive" });
         return;
       }
       const savedId = saveItinerary(data);
       navigate("/itinerary", { state: { itinerary: data, savedId } });
     } catch (err: any) {
       console.error("Generate error:", err);
-      toast({
-        title: "生成攻略失败",
-        description: err?.message || "请稍后重试",
-        variant: "destructive",
-      });
+      toast({ title: t("generateError"), description: err?.message || t("retryLater"), variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
+  const dateLocale = lang === "zh" ? zhCN : undefined;
+  const formatDate = (d: Date) => lang === "zh"
+    ? format(d, "MM月dd日", { locale: zhCN })
+    : format(d, "MMM d");
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
       <div className="relative h-[45vh] min-h-[320px] overflow-hidden">
-        {/* History button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/history")}
-          className="absolute top-4 right-4 z-20 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
-        >
-          <History className="h-4 w-4 mr-1" />
-          我的攻略
-        </Button>
-        <img src={heroImage} alt="旅行" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+          <LangToggle />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/history")}
+            className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            <History className="h-4 w-4 mr-1" />
+            {t("myItineraries")}
+          </Button>
+        </div>
+        <img src={heroImage} alt="Travel" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/40 via-foreground/20 to-background" />
         <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-3 drop-shadow-lg">
-            全球旅行攻略生成器
+            {t("heroTitle")}
           </h1>
           <p className="text-primary-foreground/90 text-lg md:text-xl max-w-md drop-shadow">
-            全球任意城市，AI 帮你规划每一天
+            {t("heroSubtitle")}
           </p>
         </div>
       </div>
@@ -111,122 +143,86 @@ const Index = () => {
       {/* Form */}
       <div className="max-w-xl mx-auto px-4 -mt-10 relative z-10 pb-16">
         <div className="glass-card rounded-2xl p-6 md:p-8 shadow-xl space-y-6">
-          {/* City Picker */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
-              📍 目标城市
-            </label>
-            <CityPicker
-              value={form.city}
-              onChange={(city) => setForm(prev => ({ ...prev, city }))}
-            />
+            <label className="text-sm font-medium text-foreground mb-2 block">{t("targetCity")}</label>
+            <CityPicker value={form.city} onChange={(city) => setForm(prev => ({ ...prev, city }))} />
           </div>
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">出发日期</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">{t("startDate")}</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !form.startDate && "text-muted-foreground")}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.startDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.startDate ? format(form.startDate, "MM月dd日", { locale: zhCN }) : "选择日期"}
+                    {form.startDate ? formatDate(form.startDate) : t("selectDate")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={form.startDate}
-                    onSelect={(d) => setForm(prev => ({ ...prev, startDate: d }))}
-                    disabled={(date) => date < new Date()}
-                    className="pointer-events-auto"
-                  />
+                  <Calendar mode="single" selected={form.startDate} onSelect={(d) => setForm(prev => ({ ...prev, startDate: d }))} disabled={(date) => date < new Date()} className="pointer-events-auto" locale={dateLocale} />
                 </PopoverContent>
               </Popover>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">结束日期</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">{t("endDate")}</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !form.endDate && "text-muted-foreground")}
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.endDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.endDate ? format(form.endDate, "MM月dd日", { locale: zhCN }) : "选择日期"}
+                    {form.endDate ? formatDate(form.endDate) : t("selectDate")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={form.endDate}
-                    onSelect={(d) => setForm(prev => ({ ...prev, endDate: d }))}
-                    disabled={(date) => date < (form.startDate || new Date())}
-                    className="pointer-events-auto"
-                  />
+                  <Calendar mode="single" selected={form.endDate} onSelect={(d) => setForm(prev => ({ ...prev, endDate: d }))} disabled={(date) => date < (form.startDate || new Date())} className="pointer-events-auto" locale={dateLocale} />
                 </PopoverContent>
               </Popover>
             </div>
           </div>
 
-          {/* Arrival & Departure Time */}
+          {/* Arrival & Departure */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">🕐 到达时间（可选）</label>
-              <Select
-                value={form.arrivalTime}
-                onValueChange={(v) => setForm(prev => ({ ...prev, arrivalTime: v }))}
-              >
+              <label className="text-sm font-medium text-foreground mb-2 block">{t("arrivalTime")}</label>
+              <Select value={form.arrivalTime} onValueChange={(v) => setForm(prev => ({ ...prev, arrivalTime: v }))}>
                 <SelectTrigger className={cn(!form.arrivalTime && "text-muted-foreground")}>
                   <Clock className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="选择时间" />
+                  <SelectValue placeholder={t("selectTime")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"].map(t => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
+                  {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">🕐 离开时间（可选）</label>
-              <Select
-                value={form.departureTime}
-                onValueChange={(v) => setForm(prev => ({ ...prev, departureTime: v }))}
-              >
+              <label className="text-sm font-medium text-foreground mb-2 block">{t("departureTime")}</label>
+              <Select value={form.departureTime} onValueChange={(v) => setForm(prev => ({ ...prev, departureTime: v }))}>
                 <SelectTrigger className={cn(!form.departureTime && "text-muted-foreground")}>
                   <Clock className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="选择时间" />
+                  <SelectValue placeholder={t("selectTime")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"].map(t => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
+                  {TIME_OPTIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Group Type */}
+          {/* Group */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">出行人群</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">{t("groupType")}</label>
             <div className="grid grid-cols-2 gap-2">
-              {GROUP_OPTIONS.map(opt => (
+              {GROUP_KEYS.map(opt => (
                 <button
                   key={opt.value}
                   onClick={() => setForm(prev => ({ ...prev, groupType: opt.value }))}
                   className={cn(
                     "rounded-lg border p-3 text-left transition-all text-sm",
-                    form.groupType === opt.value
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:border-primary/40"
+                    form.groupType === opt.value ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"
                   )}
                 >
-                  <span className="font-medium text-foreground">{opt.label}</span>
-                  <span className="block text-xs text-muted-foreground mt-0.5">{opt.desc}</span>
+                  <span className="font-medium text-foreground">{t(opt.labelKey)}</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">{t(opt.descKey)}</span>
                 </button>
               ))}
             </div>
@@ -234,21 +230,19 @@ const Index = () => {
 
           {/* Budget */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">预算区间</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">{t("budgetRange")}</label>
             <div className="grid grid-cols-3 gap-2">
-              {BUDGET_OPTIONS.map(opt => (
+              {BUDGET_KEYS.map(opt => (
                 <button
                   key={opt.value}
                   onClick={() => setForm(prev => ({ ...prev, budget: opt.value }))}
                   className={cn(
                     "rounded-lg border p-3 text-left transition-all text-sm",
-                    form.budget === opt.value
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:border-primary/40"
+                    form.budget === opt.value ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"
                   )}
                 >
-                  <span className="font-medium text-foreground">{opt.label}</span>
-                  <span className="block text-xs text-muted-foreground mt-0.5">{opt.range}</span>
+                  <span className="font-medium text-foreground">{t(opt.labelKey)}</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">{t(opt.rangeKey)}</span>
                 </button>
               ))}
             </div>
@@ -256,26 +250,23 @@ const Index = () => {
 
           {/* Preferences */}
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">旅行偏好（可选）</label>
+            <label className="text-sm font-medium text-foreground mb-2 block">{t("preferences")}</label>
             <div className="flex flex-wrap gap-2">
-              {PREFERENCE_TAGS.map(tag => (
+              {PREF_KEYS.map(tag => (
                 <button
                   key={tag.value}
                   onClick={() => togglePreference(tag.value)}
                   className={cn(
                     "rounded-full px-4 py-2 text-sm border transition-all",
-                    form.preferences.includes(tag.value)
-                      ? "border-primary bg-primary/10 text-primary font-medium"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                    form.preferences.includes(tag.value) ? "border-primary bg-primary/10 text-primary font-medium" : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
                   )}
                 >
-                  {tag.label}
+                  {t(tag.labelKey)}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Submit */}
           <Button
             onClick={handleGenerate}
             disabled={!form.city || loading}
@@ -285,19 +276,16 @@ const Index = () => {
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="animate-spin h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full" />
-                AI 正在生成攻略...
+                {t("generating")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
-                生成攻略
+                {t("generate")}
               </span>
             )}
           </Button>
-
-          <p className="text-xs text-center text-muted-foreground">
-            由 AI 智能生成，通常需要 10-20 秒
-          </p>
+          <p className="text-xs text-center text-muted-foreground">{t("aiNote")}</p>
         </div>
       </div>
     </div>
