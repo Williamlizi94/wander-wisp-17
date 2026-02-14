@@ -4,13 +4,19 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  HOT_CITIES_GLOBAL,
-  searchCities,
-  getAllRegions,
-  getCountriesByRegion,
-  getCitiesByCountry,
-  findCityInfo,
+  US_STATES, US_HOT_CITIES,
+  CHINA_PROVINCES, CHINA_HOT_CITIES,
+  INTERNATIONAL_DATA, INTERNATIONAL_HOT_CITIES,
+  searchAllCities, findCityLocation,
 } from "@/data/worldCities";
+
+type Tab = "us" | "china" | "international";
+
+const TABS: { key: Tab; label: string; emoji: string }[] = [
+  { key: "us", label: "美国", emoji: "🇺🇸" },
+  { key: "china", label: "中国", emoji: "🇨🇳" },
+  { key: "international", label: "国际", emoji: "🌍" },
+];
 
 interface CityPickerProps {
   value: string;
@@ -18,19 +24,17 @@ interface CityPickerProps {
 }
 
 const CityPicker = ({ value, onChange }: CityPickerProps) => {
+  const [tab, setTab] = useState<Tab>("china");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const regions = getAllRegions();
-  const countries = selectedRegion ? getCountriesByRegion(selectedRegion) : [];
-  const cities = selectedRegion && selectedCountry ? getCitiesByCountry(selectedRegion, selectedCountry) : [];
+  // Drill-down selectors state
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
 
-  const searchResults = useMemo(() => {
-    return searchCities(searchQuery);
-  }, [searchQuery]);
+  const searchResults = useMemo(() => searchAllCities(searchQuery), [searchQuery]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -48,7 +52,14 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
     setShowSearch(false);
   };
 
-  const cityInfo = value ? findCityInfo(value) : null;
+  const hotCities = tab === "us" ? US_HOT_CITIES : tab === "china" ? CHINA_HOT_CITIES : INTERNATIONAL_HOT_CITIES;
+
+  // Drill-down data
+  const usCities = selectedState ? (US_STATES.find(s => s.state === selectedState)?.cities || []) : [];
+  const chinaCities = selectedProvince ? (CHINA_PROVINCES.find(p => p.province === selectedProvince)?.cities || []) : [];
+  const intlCities = selectedCountry ? (INTERNATIONAL_DATA.find(c => c.country === selectedCountry)?.cities || []) : [];
+
+  const locationLabel = value ? findCityLocation(value) : "";
 
   return (
     <div className="space-y-3">
@@ -58,12 +69,9 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setShowSearch(true);
-            }}
+            onChange={(e) => { setSearchQuery(e.target.value); setShowSearch(true); }}
             onFocus={() => setShowSearch(true)}
-            placeholder="搜索城市或国家..."
+            placeholder="搜索全球任意城市..."
             className="pl-9 pr-9"
           />
           {searchQuery && (
@@ -75,35 +83,48 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
             </button>
           )}
         </div>
-
         {showSearch && searchQuery.trim() && (
           <div className="absolute z-50 top-full mt-1 w-full bg-popover border rounded-lg shadow-lg max-h-52 overflow-y-auto">
-            {searchResults.length > 0 ? (
-              searchResults.map(({ city, country, region }) => (
-                <button
-                  key={`${region}-${country}-${city}`}
-                  onClick={() => selectCity(city)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent transition-colors"
-                >
-                  <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span className="font-medium text-foreground">{city}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">{country} · {region}</span>
-                </button>
-              ))
-            ) : (
-              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
-                未找到匹配城市，你也可以直接输入城市名后按回车
-              </div>
+            {searchResults.length > 0 ? searchResults.map(({ city, location }) => (
+              <button
+                key={`${location}-${city}`}
+                onClick={() => selectCity(city)}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent transition-colors"
+              >
+                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span className="font-medium text-foreground">{city}</span>
+                <span className="text-xs text-muted-foreground ml-auto">{location}</span>
+              </button>
+            )) : (
+              <div className="px-3 py-4 text-sm text-muted-foreground text-center">未找到匹配城市</div>
             )}
           </div>
         )}
+      </div>
+
+      {/* Tab switcher */}
+      <div className="flex rounded-lg border border-border overflow-hidden">
+        {TABS.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={cn(
+              "flex-1 py-2 text-sm font-medium transition-colors",
+              tab === t.key
+                ? "bg-primary text-primary-foreground"
+                : "bg-background text-muted-foreground hover:text-foreground hover:bg-accent"
+            )}
+          >
+            {t.emoji} {t.label}
+          </button>
+        ))}
       </div>
 
       {/* Hot cities */}
       <div>
         <span className="text-xs text-muted-foreground mr-2">🔥 热门：</span>
         <div className="inline-flex flex-wrap gap-1.5 mt-1">
-          {HOT_CITIES_GLOBAL.map(city => (
+          {hotCities.map(city => (
             <button
               key={city}
               onClick={() => selectCity(city)}
@@ -120,66 +141,89 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
         </div>
       </div>
 
-      {/* Region → Country → City selectors */}
-      <div className="grid grid-cols-3 gap-2">
-        <Select
-          value={selectedRegion}
-          onValueChange={(v) => {
-            setSelectedRegion(v);
-            setSelectedCountry("");
-          }}
-        >
-          <SelectTrigger className="text-sm">
-            <SelectValue placeholder="选择地区" />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {regions.map(r => (
-              <SelectItem key={r} value={r}>{r}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={selectedCountry}
-          onValueChange={(v) => setSelectedCountry(v)}
-          disabled={!selectedRegion}
-        >
-          <SelectTrigger className="text-sm">
-            <SelectValue placeholder={selectedRegion ? "选择国家" : "先选地区"} />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {countries.map(c => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={cities.includes(value) ? value : ""}
-          onValueChange={selectCity}
-          disabled={!selectedCountry}
-        >
-          <SelectTrigger className="text-sm">
-            <SelectValue placeholder={selectedCountry ? "选择城市" : "先选国家"} />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {cities.map(city => (
-              <SelectItem key={city} value={city}>{city}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Drill-down selectors */}
+      {tab === "us" && (
+        <div className="grid grid-cols-2 gap-2">
+          <Select value={selectedState} onValueChange={setSelectedState}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="选择州" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {US_STATES.map(s => (
+                <SelectItem key={s.state} value={s.state}>{s.state}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={usCities.includes(value) ? value : ""} onValueChange={selectCity} disabled={!selectedState}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder={selectedState ? "选择城市" : "先选州"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {usCities.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {tab === "china" && (
+        <div className="grid grid-cols-2 gap-2">
+          <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="选择省份" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {CHINA_PROVINCES.map(p => (
+                <SelectItem key={p.province} value={p.province}>{p.province}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={chinaCities.includes(value) ? value : ""} onValueChange={selectCity} disabled={!selectedProvince}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder={selectedProvince ? "选择城市" : "先选省份"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {chinaCities.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {tab === "international" && (
+        <div className="grid grid-cols-2 gap-2">
+          <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="选择国家" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {INTERNATIONAL_DATA.map(c => (
+                <SelectItem key={c.country} value={c.country}>{c.country}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={intlCities.includes(value) ? value : ""} onValueChange={selectCity} disabled={!selectedCountry}>
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder={selectedCountry ? "选择城市" : "先选国家"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {intlCities.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Selected city display */}
       {value && (
         <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
           <MapPin className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium text-foreground">{value}</span>
-          {cityInfo && (
-            <span className="text-xs text-muted-foreground">{cityInfo.country} · {cityInfo.region}</span>
-          )}
-          <button
-            onClick={() => onChange("")}
-            className="ml-auto text-muted-foreground hover:text-foreground"
-          >
+          {locationLabel && <span className="text-xs text-muted-foreground">{locationLabel}</span>}
+          <button onClick={() => onChange("")} className="ml-auto text-muted-foreground hover:text-foreground">
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
