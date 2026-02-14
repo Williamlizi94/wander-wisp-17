@@ -8,7 +8,7 @@ import {
   US_STATES, US_HOT_CITIES,
   CHINA_PROVINCES, CHINA_HOT_CITIES,
   INTERNATIONAL_DATA, INTERNATIONAL_HOT_CITIES,
-  searchAllCities, findCityLocation,
+  searchAllCities, findCityLocation, loc,
 } from "@/data/worldCities";
 
 type Tab = "us" | "china" | "international";
@@ -19,7 +19,7 @@ interface CityPickerProps {
 }
 
 const CityPicker = ({ value, onChange }: CityPickerProps) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [tab, setTab] = useState<Tab>("china");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -29,7 +29,7 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
 
-  const searchResults = useMemo(() => searchAllCities(searchQuery), [searchQuery]);
+  const searchResults = useMemo(() => searchAllCities(searchQuery, lang), [searchQuery, lang]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -58,7 +58,8 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
   const chinaCities = selectedProvince ? (CHINA_PROVINCES.find(p => p.province === selectedProvince)?.cities || []) : [];
   const intlCities = selectedCountry ? (INTERNATIONAL_DATA.find(c => c.country === selectedCountry)?.cities || []) : [];
 
-  const locationLabel = value ? findCityLocation(value) : "";
+  const locationLabel = value ? findCityLocation(value, lang) : "";
+  const l = (name: string) => loc(name, lang);
 
   return (
     <div className="space-y-3">
@@ -83,7 +84,7 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
             {searchResults.length > 0 ? searchResults.map(({ city, location }) => (
               <button key={`${location}-${city}`} onClick={() => selectCity(city)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent transition-colors">
                 <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                <span className="font-medium text-foreground">{city}</span>
+                <span className="font-medium text-foreground">{l(city)}</span>
                 <span className="text-xs text-muted-foreground ml-auto">{location}</span>
               </button>
             )) : (
@@ -116,7 +117,7 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
               "rounded-full px-3 py-1 text-xs border transition-all",
               value === city ? "border-primary bg-primary/10 text-primary font-medium" : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
             )}>
-              {city}
+              {l(city)}
             </button>
           ))}
         </div>
@@ -126,11 +127,11 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
         <div className="grid grid-cols-2 gap-2">
           <Select value={selectedState} onValueChange={setSelectedState}>
             <SelectTrigger className="text-sm"><SelectValue placeholder={t("selectState")} /></SelectTrigger>
-            <SelectContent className="max-h-60">{US_STATES.map(s => <SelectItem key={s.state} value={s.state}>{s.state}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-60">{US_STATES.map(s => <SelectItem key={s.state} value={s.state}>{l(s.state)}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={usCities.includes(value) ? value : ""} onValueChange={selectCity} disabled={!selectedState}>
             <SelectTrigger className="text-sm"><SelectValue placeholder={selectedState ? t("selectCity") : t("firstState")} /></SelectTrigger>
-            <SelectContent className="max-h-60">{usCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-60">{usCities.map(c => <SelectItem key={c} value={c}>{l(c)}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       )}
@@ -139,11 +140,11 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
         <div className="grid grid-cols-2 gap-2">
           <Select value={selectedProvince} onValueChange={setSelectedProvince}>
             <SelectTrigger className="text-sm"><SelectValue placeholder={t("selectProvince")} /></SelectTrigger>
-            <SelectContent className="max-h-60">{CHINA_PROVINCES.map(p => <SelectItem key={p.province} value={p.province}>{p.province}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-60">{CHINA_PROVINCES.map(p => <SelectItem key={p.province} value={p.province}>{l(p.province)}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={chinaCities.includes(value) ? value : ""} onValueChange={selectCity} disabled={!selectedProvince}>
             <SelectTrigger className="text-sm"><SelectValue placeholder={selectedProvince ? t("selectCity") : t("firstProvince")} /></SelectTrigger>
-            <SelectContent className="max-h-60">{chinaCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-60">{chinaCities.map(c => <SelectItem key={c} value={c}>{l(c)}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       )}
@@ -152,11 +153,11 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
         <div className="grid grid-cols-2 gap-2">
           <Select value={selectedCountry} onValueChange={setSelectedCountry}>
             <SelectTrigger className="text-sm"><SelectValue placeholder={t("selectCountry")} /></SelectTrigger>
-            <SelectContent className="max-h-60">{INTERNATIONAL_DATA.map(c => <SelectItem key={c.country} value={c.country}>{c.country}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-60">{INTERNATIONAL_DATA.map(c => <SelectItem key={c.country} value={c.country}>{l(c.country)}</SelectItem>)}</SelectContent>
           </Select>
           <Select value={intlCities.includes(value) ? value : ""} onValueChange={selectCity} disabled={!selectedCountry}>
             <SelectTrigger className="text-sm"><SelectValue placeholder={selectedCountry ? t("selectCity") : t("firstCountry")} /></SelectTrigger>
-            <SelectContent className="max-h-60">{intlCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <SelectContent className="max-h-60">{intlCities.map(c => <SelectItem key={c} value={c}>{l(c)}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       )}
@@ -164,7 +165,7 @@ const CityPicker = ({ value, onChange }: CityPickerProps) => {
       {value && (
         <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
           <MapPin className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">{value}</span>
+          <span className="text-sm font-medium text-foreground">{l(value)}</span>
           {locationLabel && <span className="text-xs text-muted-foreground">{locationLabel}</span>}
           <button onClick={() => onChange("")} className="ml-auto text-muted-foreground hover:text-foreground">
             <X className="h-3.5 w-3.5" />
